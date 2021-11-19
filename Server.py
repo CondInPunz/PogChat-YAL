@@ -10,12 +10,13 @@ LOG_IN = 0
 SEND = 1
 LOG_OUT = 2
 SELECT_ALL_MESS = 3
+SELECT_LAST_MESS = 4
 
 server_socket.listen(1)
 print('server started!')
 conn, addr = server_socket.accept()
 
-print('connected:', addr)
+print(f'{addr} joined the chat!')
 shutdown_server = False
 is_logged_in = False
 
@@ -23,20 +24,20 @@ while not shutdown_server:
     try:
         data = conn.recv(1024)
         data = data.decode('utf-8')
+        print(data)
         query = int(data.split()[0])
         client_login = data.split()[1]
         extra_data = ' '.join(data.split()[2:])
-        # print(extra_data)
+        print(extra_data)
 
         if query == SEND:
-            # print('all is ok')
+            print('all is ok')
             if is_logged_in:
                 message = extra_data
-                if db_operations.find_user(db_name, client_login):
-                    db_operations.send_message(db_name, client_login, message)
-                    conn.send(client_login.encode('utf-8').upper())
-                else:
-                    conn.send('send failed : user not found'.encode('utf-8'))
+                print(message)
+                db_operations.send_message(db_name, client_login, message)
+                conn.send(client_login.encode('utf-8').upper())
+                print('cool')
             else:
                 conn.send('not logged in'.encode('utf-8'))
 
@@ -62,8 +63,16 @@ while not shutdown_server:
             is_logged_in = False
             db_operations.send_message(db_name, '[SERVER]', f'[{client_login} joined chat!]')
             conn.send('u left chat'.encode('utf-8'))
+
         if query == SELECT_ALL_MESS:
-            pass
+            data = db_operations.select_all_messages(db_name)
+            conn.send(data.encode('utf-8'))
+            print('all messages sent to client successfully.')
+
+        if query == SELECT_LAST_MESS:
+            data = db_operations.select_last_message(db_name)
+            conn.send(data.encode('utf-8'))
+            print('the last message sent to client successfully.')
     except:
         shutdown_server = True
 

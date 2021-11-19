@@ -114,3 +114,15 @@ def select_all_messages(name):
     connect.commit()
     connect.close()
     return data
+
+
+def select_last_message(name):
+    connect = sqlite3.connect(name)
+    cursor = connect.cursor()
+
+    query = f"""SELECT id from messages"""
+
+    data = cursor.execute(query).fetchall()
+    connect.commit()
+    connect.close()
+    return data[-1][0]

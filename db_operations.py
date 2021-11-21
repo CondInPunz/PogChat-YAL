@@ -1,13 +1,12 @@
 import sqlite3
-import bcrypt
 import datetime
+from hash_operations import encode_password, create_password
 
 
 def add_user(name, login, password):
     connect = sqlite3.connect(name)
     cursor = connect.cursor()
-    salt = bcrypt.gensalt()
-    password = bcrypt.hashpw(password.encode('utf-8'), salt)
+    password, salt = create_password(password)
 
     query = f"""INSERT INTO users(login, password, status, salt) 
     VALUES('{login}', '{password.decode('utf-8')}', {True}, '{salt.decode('utf-8')}')"""
@@ -32,12 +31,17 @@ def delete_user(name, login):
 def update_password(name, login, new_password):
     connect = sqlite3.connect(name)
     cursor = connect.cursor()
-    salt = bcrypt.gensalt()
-    new_password = bcrypt.hashpw(new_password.encode('utf-8'), salt)
+    new_password, salt = create_password(new_password)
 
     query = f"""UPDATE users
-            SET password = {new_password}
+            SET password = '{new_password.decode('utf-8')}'
             WHERE login = '{login}'"""
+
+    cursor.execute(query).fetchall()
+
+    query = f"""UPDATE users
+                SET salt = '{salt.decode('utf-8')}'
+                WHERE login = '{login}'"""
 
     cursor.execute(query).fetchall()
     connect.commit()
@@ -84,7 +88,7 @@ def check_password(name, login, not_checked_pw):
     salt = cursor.execute(query).fetchall()[0][1]
     salt = salt.encode('utf-8')
     password = password.encode('utf-8')
-    not_checked_pw = bcrypt.hashpw(not_checked_pw.encode('utf-8'), salt)
+    not_checked_pw = encode_password(not_checked_pw, salt)
 
     connect.commit()
     connect.close()

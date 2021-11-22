@@ -42,6 +42,10 @@ class Client(QMainWindow):
             print('В данный момент сервер находится на техническом обслуживании.')
             return False
 
+    def create_account(self):
+        self.reg_window = RegWindow(self.client_socket)
+        self.reg_window.show()
+
     def enter(self):
         self.login = self.login_enter.text()
         self.login_enter.setText('')
@@ -52,6 +56,11 @@ class Client(QMainWindow):
         print(answer)
         if answer == 'u r not the father':
             self.wrong_answer_label.show()
+            self.password = ''
+            self.login = ''
+        elif answer == 'who r u':
+            self.wrong_answer_confirmation = QueryWindow('Такой учётной записи не существует. Пожалуйста, создайте её.')
+            self.wrong_answer_confirmation.show()
             self.password = ''
             self.login = ''
         else:
@@ -127,7 +136,7 @@ class ServerConnectionError(ConnectionError):
     pass
 
 
-class QueryWindow(QMainWindow):
+class QueryWindow(QWidget):
     def __init__(self, query):
         super().__init__()
         uic.loadUi('chat_client.ui', self)

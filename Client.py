@@ -5,7 +5,7 @@ import time
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, QThread, QTimer, QSize
 from PyQt5.QtGui import QPixmap, QMovie
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QSplashScreen
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QSplashScreen, QDialog
 
 LOG_IN = 0
 SEND = 1
@@ -130,7 +130,6 @@ class ClientChat(QMainWindow):
                 text = message[1]
                 self.chat_window.append(f'[{send_date}] [{send_time}] {user}: {text}')
 
-
     def launch_updating_chat_window(self):
         self.updatingChatWindowThread.start()
 
@@ -168,12 +167,19 @@ class UpdatingChatWindowThread(QThread):
 
     def run(self):
         while True:
-            print(self.value)
-            self.value += 1
-            time.sleep(0.2)
+            last_message, address = self.main_window.client_socket.recvfrom(2048)
+            print(last_message)
+            last_message = last_message.decode('utf-8')
+            last_message = last_message.split('%')
+            send_date = last_message[3]
+            send_time = last_message[4][:8]
+            user = last_message[2]
+            text = last_message[1]
+            self.main_window.chat_window.append(f'[{send_date}] [{send_time}] {user}: {text}')
+            time.sleep(0.3)
 
 
-class QueryWindow(QWidget):
+class QueryWindow(QDialog):
     def __init__(self, query):
         super().__init__()
         uic.loadUi('confirm.ui', self)

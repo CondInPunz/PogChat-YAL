@@ -127,7 +127,7 @@ def select_last_message(name):
     query = f"""SELECT id from messages"""
 
     data = cursor.execute(query).fetchall()
-    last_id = data[-1][0] - 1
+    last_id = data[-1][0]
 
     query = f"""SELECT * from messages where id = {last_id}"""
     data = cursor.execute(query).fetchall()

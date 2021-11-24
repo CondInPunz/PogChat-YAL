@@ -28,8 +28,9 @@ while not shutdown_server:
         print(data)
         query = int(data.split()[0])
         client_login = data.split()[1]
-        extra_data = ' '.join(data.split()[2:])
-        print(extra_data)
+        if len(data) > 2:
+            extra_data = ' '.join(data.split()[2:])
+            print(extra_data)
 
         if query == SEND:
             print('all is ok')
@@ -62,6 +63,11 @@ while not shutdown_server:
 
         if query == SELECT_ALL_MESS:
             data = db_operations.select_all_messages(db_name)
+            full_text = ''
+            for message in data:
+                message = list(map(str, list(message)))
+                full_text += '%'.join(message) + '$'
+            server_socket.sendto(full_text.encode('utf-8'), client_address)
             print('all messages sent to client successfully.')
 
         if query == REG:

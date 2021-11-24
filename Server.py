@@ -23,25 +23,25 @@ shutdown_server = False
 while not shutdown_server:
     try:
         data, client_address = server_socket.recvfrom(2048)
-        print(data)
         data = data.decode('utf-8')
-        print(data)
         query = int(data.split()[0])
         client_login = data.split()[1]
         if len(data) > 2:
             extra_data = ' '.join(data.split()[2:])
-            print(extra_data)
 
         if query == SEND:
-            print('all is ok')
             message = extra_data
             print(message)
             db_operations.send_message(db_name, client_login, message)
-            server_socket.sendto(client_login.encode('utf-8').upper(), client_address)
-            print('cool')
+            last_message = db_operations.select_last_message(db_name)
+            last_message = db_operations.select_last_message(db_name)
+            last_message = list(last_message[0])
+            last_message = list(map(str, last_message))
+            server_socket.sendto('%'.join(last_message).encode('utf-8'), client_address)
+            print(last_message)
+            print('message sent successfully!')
 
         if query == LOG_IN:
-            print('all is ok')
             password = extra_data
             if db_operations.find_user(db_name, client_login):
                 if db_operations.check_password(db_name, client_login, password):
@@ -72,7 +72,6 @@ while not shutdown_server:
 
         if query == REG:
             password = extra_data
-            print(client_login, password)
             db_operations.add_user(db_name, client_login, password)
             print('new user created.')
     except:

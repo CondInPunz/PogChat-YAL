@@ -30,6 +30,8 @@ class Client(QMainWindow):
 
         if not self.establish_connection():
             self.server_connection_error = QueryWindow('В данный момент сервер недоступен.')
+            self.server_connection_error.show()
+            self.close()
 
         self.users_tab_name = 'userdata.sqlite'
         self.login = login
@@ -71,7 +73,7 @@ class Client(QMainWindow):
             self.password = ''
             self.login = ''
         elif answer == 'who r u':
-            self.wrong_answer_confirmation = QueryWindow('Такой учётной записи не существует. Пожалуйста, создайте её.')
+            self.wrong_answer_confirmation = QueryWindow('Такой учётной записи не существует.')
             self.wrong_answer_confirmation.show()
             self.password = ''
             self.login = ''
@@ -114,7 +116,9 @@ class ClientChat(QMainWindow):
         self.send_button.clicked.connect(self.send)
         self.fulfil_chat()
         self.first_form = None
-
+        logo_image_name = 'logo.png'
+        self.logo_pixmap = QPixmap(logo_image_name)
+        self.logo_label.setPixmap(self.logo_pixmap)
 
         self.updatingChatWindowThread = UpdatingChatWindowThread(self)
         self.launch_updating_chat_window()
@@ -226,7 +230,6 @@ class LoadingScreen(QSplashScreen):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     cl_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    ex = Client('', cl_socket)
     splash = LoadingScreen()
     splash.show()
 

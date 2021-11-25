@@ -17,24 +17,26 @@ SERVER = ("192.168.1.2", 9091)
 
 
 class Client(QMainWindow):
-    def __init__(self):
+    def __init__(self, login='', socket=None):
         super().__init__()
         uic.loadUi('client.ui', self)
-        self.initUI()
+        self.initUI(login, socket)
 
-    def initUI(self):
+    def initUI(self, login, socket):
         logo_image_name = 'logo.png'
         self.logo_pixmap = QPixmap(logo_image_name)
         self.logo_label.setPixmap(self.logo_pixmap)
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.client_socket = socket
 
         if not self.establish_connection():
             self.server_connection_error = QueryWindow('В данный момент сервер недоступен.')
 
         self.users_tab_name = 'userdata.sqlite'
-        self.login = ''
+        self.login = login
         self.password = ''
         self.second_form = None
+        self.pw_enter_cursor_pos = None
+        self.password_enter.cursorPositionChanged.connect(self.find_cursor)
         self.enter_button.clicked.connect(self.enter)
         self.reg_button.clicked.connect(self.create_account)
         self.password_enter.textChanged.connect(self.hide_password)
@@ -57,13 +59,11 @@ class Client(QMainWindow):
 
     def enter(self):
         self.login = self.login_enter.text()
-        self.login_enter.setText('')
-        self.password_enter.setText('')
         self.client_socket.sendto(f'{LOG_IN} {self.login} {self.password}'.encode("utf-8"), SERVER)
+        self.password_enter.setText('')
+        self.login_enter.setText('')
 
         answer, address = self.client_socket.recvfrom(2048)
-        print(answer)
-        print(address)
         answer = answer.decode('utf-8')
         if answer == 'u r not the father':
             self.wrong_answer_confirmation = QueryWindow('Введённые данные неверны.')
@@ -91,8 +91,15 @@ class Client(QMainWindow):
         if self.password_enter.text() != '*' * len(self.password_enter.text()):
             self.password += self.password_enter.text()[-1]
             self.password_enter.setText('*' * len(self.password))
-        if len(self.password) != len(self.password_enter.text()) and len(self.password_enter.text()) != 0:
-            self.password = self.password[:-1]
+        if len(self.password) != len(self.password_enter.text()):
+            self.password = self.password[:self.pw_enter_cursor_pos - 1] + self.password[self.pw_enter_cursor_pos:]
+        elif len(self.password_enter.text()) == 0:
+            self.password = ''
+        print(self.password)
+
+    def find_cursor(self):
+        self.pw_enter_cursor_pos = self.password_enter.cursorRect()
+        self.pw_enter_cursor_pos = (self.pw_enter_cursor_pos.topLeft().x() + 2) // 6
 
 
 class ClientChat(QMainWindow):
@@ -108,6 +115,7 @@ class ClientChat(QMainWindow):
         self.fulfil_chat()
         self.first_form = None
 
+
         self.updatingChatWindowThread = UpdatingChatWindowThread(self)
         self.launch_updating_chat_window()
 
@@ -119,9 +127,7 @@ class ClientChat(QMainWindow):
         self.client_socket.sendto(f"{SELECT_ALL_MESS} {self.user_login} extra_data".encode('utf-8'), SERVER)
         received_data, address = self.client_socket.recvfrom(10240)
         messages = received_data.decode('utf-8').split('$')
-        print(messages)
         for message in messages:
-            print(message)
             if message:
                 message = message.split('%')
                 send_date = message[3]
@@ -135,16 +141,8 @@ class ClientChat(QMainWindow):
 
     def send(self):
         message = self.message_enter.text()
-        print(message)
         self.message_enter.setText('')
         self.client_socket.sendto(f'{SEND} {self.user_login} {message}'.encode('utf-8'), SERVER)
-
-    def receive_message(self):
-        while True:
-            time.sleep(5)
-            data, addr = self.client_socket.recvfrom(1024)
-            data = data.decode('utf-8')
-            print(data)
 
     def quit_the_chat(self):
         self.client_socket.close()
@@ -153,6 +151,11 @@ class ClientChat(QMainWindow):
         self.client_socket.sendto(f'{LOG_OUT} {self.user_login} left chat.'.encode('utf-8'), SERVER)
         self.hide()
         time.sleep(3)
+        self.close()
+
+    def open_first_form(self):
+        self.first_form = ClientChat(self.login, self.client_socket)
+        self.first_form.show()
         self.close()
 
 
@@ -168,7 +171,6 @@ class UpdatingChatWindowThread(QThread):
     def run(self):
         while True:
             last_message, address = self.main_window.client_socket.recvfrom(2048)
-            print(last_message)
             last_message = last_message.decode('utf-8')
             last_message = last_message.split('%')
             send_date = last_message[3]
@@ -223,12 +225,13 @@ class LoadingScreen(QSplashScreen):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = Client()
+    cl_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    ex = Client('', cl_socket)
     splash = LoadingScreen()
     splash.show()
 
     def createWindow():
-        app.w = Client()
+        app.w = Client('', cl_socket)
         QTimer.singleShot(500, lambda: (app.w.show(), splash.finish(app.w)))
 
     QTimer.singleShot(500, createWindow)

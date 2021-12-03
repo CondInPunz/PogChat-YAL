@@ -13,7 +13,7 @@ LOG_OUT = 2
 SELECT_ALL_MESS = 3
 SELECT_LAST_MESS = 4
 REG = 5
-SERVER = ("192.168.1.2", 9091)
+SERVER = ("192.168.1.2", 9092)
 
 
 class Client(QMainWindow):
@@ -23,6 +23,7 @@ class Client(QMainWindow):
         self.initUI(login, socket)
 
     def initUI(self, login, socket):
+        self.customize_theme()
         logo_image_name = 'logo.png'
         self.logo_pixmap = QPixmap(logo_image_name)
         self.logo_label.setPixmap(self.logo_pixmap)
@@ -33,7 +34,6 @@ class Client(QMainWindow):
             self.server_connection_error.show()
             self.close()
 
-        self.users_tab_name = 'userdata.sqlite'
         self.login = login
         self.password = ''
         self.second_form = None
@@ -42,6 +42,17 @@ class Client(QMainWindow):
         self.enter_button.clicked.connect(self.enter)
         self.reg_button.clicked.connect(self.create_account)
         self.password_enter.textChanged.connect(self.hide_password)
+
+    def customize_theme(self):
+        theme_info_file = open('static/info.txt', 'r')
+        customization_data = theme_info_file.readline()
+        if customization_data == '':
+            theme_info_file = open('static/info.txt', 'w')
+            theme_info_file.write('Light')
+        elif customization_data == 'Light':
+            pass
+        else:
+            pass
 
     def establish_connection(self):
         try:
@@ -122,6 +133,11 @@ class ClientChat(QMainWindow):
 
         self.updatingChatWindowThread = UpdatingChatWindowThread(self)
         self.launch_updating_chat_window()
+        self.setMenuBar(self.menubar)
+        self.menubar.menu.change_button.switch_to_dark_theme_button.clicked.connect(self.switch_to_dark())
+
+    def switch_to_dark(self):
+        print(1)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Enter:
@@ -214,7 +230,7 @@ class QueryWindow(QDialog):
 class LoadingScreen(QSplashScreen):
     def __init__(self, *args, **kwargs):
         super(LoadingScreen, self).__init__(*args, **kwargs)
-        self.loading_movie = QMovie('loading_gif.gif')
+        self.loading_movie = QMovie('static/loading_gif.gif')
         self.loading_movie.setScaledSize(QSize(150, 50))
         self.loading_movie.frameChanged.connect(self.change_frame)
         self.loading_movie.start()

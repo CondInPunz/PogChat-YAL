@@ -7,11 +7,11 @@ LOG_OUT = 2
 SELECT_ALL_MESS = 3
 SELECT_LAST_MESS = 4
 REG = 5
-db_name = 'userdata.sqlite'
+db_name = 'ChatData.sqlite'
 
 host = socket.gethostbyname(socket.gethostname())
 print(host)
-port = 9091
+port = 9092
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_socket.bind((host, port))

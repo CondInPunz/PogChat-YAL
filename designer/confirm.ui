@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>300</width>
+    <width>443</width>
     <height>159</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
     <rect>
      <x>86</x>
      <y>22</y>
-     <width>181</width>
+     <width>311</width>
      <height>81</height>
     </rect>
    </property>
@@ -34,7 +34,7 @@
   <widget class="QPushButton" name="confirm_button">
    <property name="geometry">
     <rect>
-     <x>120</x>
+     <x>220</x>
      <y>120</y>
      <width>75</width>
      <height>23</height>
@@ -47,7 +47,7 @@
   <widget class="QPushButton" name="cancel_button">
    <property name="geometry">
     <rect>
-     <x>200</x>
+     <x>310</x>
      <y>120</y>
      <width>75</width>
      <height>23</height>
@@ -60,7 +60,7 @@
   <widget class="QPushButton" name="extra_button">
    <property name="geometry">
     <rect>
-     <x>40</x>
+     <x>130</x>
      <y>120</y>
      <width>75</width>
      <height>23</height>

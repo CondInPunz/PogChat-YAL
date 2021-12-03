@@ -249,9 +249,11 @@ if __name__ == '__main__':
     splash = LoadingScreen()
     splash.show()
 
+
     def createWindow():
         app.w = Client('', cl_socket)
         QTimer.singleShot(500, lambda: (app.w.show(), splash.finish(app.w)))
+
 
     QTimer.singleShot(500, createWindow)
     sys.exit(app.exec_())

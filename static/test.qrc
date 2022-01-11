@@ -1,5 +1,0 @@
-<RCC>
-  <qresource prefix="newPrefix">
-    <file>warning_icon.png</file>
-  </qresource>
-</RCC>

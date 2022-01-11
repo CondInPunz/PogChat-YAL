@@ -13,7 +13,66 @@ LOG_OUT = 2
 SELECT_ALL_MESS = 3
 SELECT_LAST_MESS = 4
 REG = 5
-SERVER = ("192.168.1.2", 9091)
+SERVER = ("192.168.1.4", 9091)
+
+
+class RegWindow(QWidget):
+    def __init__(self, socket=None):
+        super().__init__()
+        uic.loadUi('reg_form.ui', self)
+        self.initUI(socket)
+
+    def initUI(self, socket):
+        self.client_socket = socket
+
+        self.password = ''
+        self.password2 = ''
+        self.pw_enter_cursor_pos = None
+        self.password_enter.cursorPositionChanged.connect(self.find_cursor)
+        self.password_enter_2.cursorPositionChanged.connect(self.find_cursor)
+        self.reg_button.clicked.connect(self.enter)
+        self.password_enter.textChanged.connect(self.hide_password)
+        self.password_enter_2.textChanged.connect(self.hide_password_2)
+
+    def enter(self):
+        self.login = self.login_enter.text()
+        if self.password == self.password2:
+            self.reg()
+        else:
+            self.wrong_answer_confirmation = QueryWindow('Введённые данные неверны.')
+            self.wrong_answer_confirmation.show()
+
+    def reg(self):
+        self.client_socket.sendto(f'{REG} {self.login} {self.password}'.encode("utf-8"), SERVER)
+        self.close()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Enter:
+            self.enter()
+
+    def hide_password(self):
+        if self.password_enter.text() != '*' * len(self.password_enter.text()):
+            self.password += self.password_enter.text()[-1]
+            self.password_enter.setText('*' * len(self.password))
+        if len(self.password) != len(self.password_enter.text()):
+            self.password = self.password[:self.pw_enter_cursor_pos - 1] + self.password[self.pw_enter_cursor_pos:]
+        elif len(self.password_enter.text()) == 0:
+            self.password = ''
+        print(self.password)
+
+    def hide_password_2(self):
+        if self.password_enter_2.text() != '*' * len(self.password_enter_2.text()):
+            self.password2 += self.password_enter_2.text()[-1]
+            self.password_enter_2.setText('*' * len(self.password2))
+        if len(self.password2) != len(self.password_enter_2.text()):
+            self.password2 = self.password2[:self.pw_enter_cursor_pos - 1] + self.password2[self.pw_enter_cursor_pos:]
+        elif len(self.password_enter_2.text()) == 0:
+            self.password2 = ''
+        print(self.password2)
+
+    def find_cursor(self):
+        self.pw_enter_cursor_pos = self.password_enter.cursorRect()
+        self.pw_enter_cursor_pos = (self.pw_enter_cursor_pos.topLeft().x() + 2) // 6
 
 
 class Client(QMainWindow):
@@ -27,12 +86,14 @@ class Client(QMainWindow):
         self.logo_pixmap = QPixmap(logo_image_name)
         self.logo_label.setPixmap(self.logo_pixmap)
         self.client_socket = socket
+        self.info_file = None
 
         if not self.establish_connection():
             self.server_connection_error = QueryWindow('В данный момент сервер недоступен.')
             self.server_connection_error.show()
             self.close()
 
+        self.set_theme()
         self.users_tab_name = 'userdata.sqlite'
         self.login = login
         self.password = ''
@@ -42,6 +103,15 @@ class Client(QMainWindow):
         self.enter_button.clicked.connect(self.enter)
         self.reg_button.clicked.connect(self.create_account)
         self.password_enter.textChanged.connect(self.hide_password)
+
+    def set_theme(self):
+        try:
+            self.info_file = open('info.txt', 'r')
+        except:
+            self.info_file = open('info.txt', 'w')
+            self.info_file.write('Light')
+        self.theme = self.info_file.read()
+        print(self.theme)
 
     def establish_connection(self):
         try:
@@ -119,6 +189,7 @@ class ClientChat(QMainWindow):
         logo_image_name = 'logo.png'
         self.logo_pixmap = QPixmap(logo_image_name)
         self.logo_label.setPixmap(self.logo_pixmap)
+        self.nick_name_label.setText(self.user_login)
 
         self.updatingChatWindowThread = UpdatingChatWindowThread(self)
         self.launch_updating_chat_window()

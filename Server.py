@@ -59,7 +59,7 @@ while not shutdown_server:
         if query == LOG_OUT:
             db_operations.set_status(db_name, client_login, False)
             is_logged_in = False
-            db_operations.send_message(db_name, '[SERVER]', f'[{client_login} joined chat!]')
+            db_operations.send_message(db_name, '[SERVER]', f'{client_login} left chat!')
 
         if query == SELECT_ALL_MESS:
             data = db_operations.select_all_messages(db_name)
